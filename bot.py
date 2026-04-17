@@ -60,6 +60,15 @@ async def start(message: types.Message):
 
     cursor.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
     user = cursor.fetchone()
+    cursor.execute("SELECT user_id FROM users WHERE user_id=?", (user_id,))
+user = cursor.fetchone()
+
+if not user:
+    cursor.execute("""
+        INSERT INTO users (user_id, referrer_id, points, referrals, clicks, last_bonus)
+        VALUES (?, NULL, 0, 0, 0, 0)
+    """, (user_id,))
+    conn.commit()
 
     if not user:
         referrer_id = int(args) if args.isdigit() else None
@@ -207,6 +216,8 @@ async def bonus(message: types.Message):
     await message.answer("🎁 Siz 10 ball bonus oldingiz!")
 
 #=================chek sub================
+
+
 @dp.callback_query_handler(lambda c: c.data == "check_sub")
 async def check_subscription(callback: types.CallbackQuery):
     user_id = callback.from_user.id
