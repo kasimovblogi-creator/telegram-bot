@@ -5,7 +5,7 @@ from aiogram.utils import executor
 
 import os
 
-TOKEN = os.getenv("8676426048:AAGc4WHnfpavDfUaG-LnD7rs34ZyLEEDCl4")
+TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 8479973325  # <-- o'zingni Telegram ID
 
 bot = Bot(token=TOKEN)
