@@ -16,6 +16,7 @@ ADMIN_ID = 8479973325  # <-- o'zingni Telegram ID
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
+check_cache = {}
 
 conn = sqlite3.connect("users.db", check_same_thread=False)
 cursor = conn.cursor()
@@ -205,6 +206,67 @@ async def bonus(message: types.Message):
 
     await message.answer("🎁 Siz 10 ball bonus oldingiz!")
 
+#=================chek sub================
+@dp.callback_query_handler(lambda c: c.data == "check_sub")
+async def check_subscription(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+    now = time.time()
+
+    # 🔥 CACHE (sekinlikni kamaytiradi)
+    if user_id in check_cache and now - check_cache[user_id] < 10:
+        return await callback.answer("⏳ Iltimos biroz kuting...", show_alert=True)
+
+    check_cache[user_id] = now
+
+    # 📡 Kanalni tekshirish
+    member = await bot.get_chat_member(CHANNEL, user_id)
+
+    if member.status in ["member", "administrator", "creator"]:
+
+        # 🔥 referral olish
+        cursor.execute("SELECT referrer_id FROM users WHERE user_id=?", (user_id,))
+        ref = cursor.fetchone()
+
+        if ref and ref[0]:
+            referrer_id = ref[0]
+
+            cursor.execute("""
+                UPDATE users
+                SET points = points + 5,
+                    referrals = referrals + 1
+                WHERE user_id=?
+            """, (referrer_id,))
+            conn.commit()
+
+            # 📩 REFERRERGA XABAR
+            try:
+                cursor.execute("SELECT points FROM users WHERE user_id=?", (referrer_id,))
+                points = cursor.fetchone()[0]
+
+                await bot.send_message(
+                    referrer_id,
+                    f"🎉 Tabriklaymiz! Yangi odam qo‘shildi!\n"
+                    f"+5 ball\n\n"
+                    f"⭐ Jami ballingiz: {points}"
+                )
+            except:
+                pass
+
+        link = f"https://t.me/saudiyasari_bot?start={user_id}"
+
+        await callback.message.answer(
+            "🎉 Tabriklaymiz siz kanalga azo bo‘ldingiz!\n\n"
+            "👥 Endi 10 ta odam taklif qiling va 50 ball bilan konkursda qatnashing!\n\n"
+            f"🔗 Sizning referral linkingiz:\n{link}"
+        )
+
+    else:
+        await callback.message.answer(
+            "❌ Siz kanalga azo bo‘lmadingiz.\n"
+            "Iltimos avval kanalga azo bo‘ling!"
+        )
+
+    await callback.answer()
 
 # ================= ADMIN PANEL =================
 @dp.message_handler(commands=['admin'])
