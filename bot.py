@@ -1,10 +1,16 @@
-﻿import sqlite3
+﻿
+
+
+import sqlite3
 import time
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
 
 import os
 
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+CHANNEL = "@saudiya_sari1"
 TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 8479973325  # <-- o'zingni Telegram ID
 
@@ -41,6 +47,8 @@ def is_spam(user_id):
 
 
 # ================= START =================
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
     user_id = message.from_user.id
@@ -63,25 +71,69 @@ async def start(message: types.Message):
             VALUES (?, ?, 0, 0, 0, 0)
         """, (user_id, referrer_id))
 
-        # referral reward
-        if referrer_id:
+        conn.commit()
+
+    # 👇 KNOPKALAR
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton("📢 Kanalga azo bo‘lish", url=f"https://t.me/{CHANNEL[1:]}"),
+        InlineKeyboardButton("✅ Tekshirish", callback_data="check_sub")
+    )
+
+    await message.answer(
+        "Assalamu alaykum!\n\n"
+        "Siz mahsus link orqali yaqinlaringizni taklif qilib "
+        "Saudiya universitetlariga bepul hujjat topshirish imkoniyatiga ega bo‘lasiz!\n\n"
+        "❗ Konkursda qatnashish uchun kanalimizga azo bo‘ling",
+        reply_markup=keyboard
+    )
+#======================obunani tekshirish============
+
+@dp.callback_query_handler(lambda c: c.data == "check_sub")
+async def check_subscription(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+
+    member = await bot.get_chat_member(CHANNEL, user_id)
+
+    if member.status in ["member", "administrator", "creator"]:
+        # referral reward ishlaydi shu yerda
+        cursor.execute("SELECT referrer_id FROM users WHERE user_id=?", (user_id,))
+        ref = cursor.fetchone()
+
+        if ref and ref[0]:
+            referrer_id = ref[0]
+
             cursor.execute("""
                 UPDATE users
                 SET points = points + 5,
-                    referrals = referrals + 1,
-                    clicks = clicks + 1
+                    referrals = referrals + 1
                 WHERE user_id=?
             """, (referrer_id,))
+            conn.commit()
 
-        conn.commit()
+            # 📩 XABAR REFERRERGA
+            try:
+                await bot.send_message(
+                    referrer_id,
+                    "🎉 Tabriklaymiz! Sizning linkingiz orqali yangi foydalanuvchi qo‘shildi!\n+5 ball"
+                )
+            except:
+                pass
 
-    link = f"https://t.me/saudiyasari_bot?start={user_id}"
+        link = f"https://t.me/saudiyasari_bot?start={user_id}"
 
-    await message.answer(
-        "👋 Xush kelibsiz! ushbu link orqali do'stlaringizni taklif qiling va saudiya univerlariga bepul hujjat topshiring\n\n"
-        f"🔗 Referral link:\n{link}"
-    )
+        await callback.message.answer(
+            "🎉 Tabriklaymiz siz azo bo‘ldingiz!\n\n"
+            "Endi ushbu link orqali atigi 10 ta odam taklif qiling va 50 ball bilan konkursda qatnashing!\n\n"
+            f"🔗 Sizning linkingiz:\n{link}"
+        )
 
+    else:
+        await callback.message.answer(
+            "❌ Kechirasiz, siz kanalga azo bo‘lmadingiz. Iltimos azo bo‘ling!"
+        )
+
+    await callback.answer()
 
 # ================= STATS =================
 @dp.message_handler(commands=['stats'])
@@ -164,7 +216,26 @@ async def admin(message: types.Message):
     total = cursor.fetchone()[0]
 
     await message.answer(f"🧑‍💼 Admin panel\n👥 Users: {total}")
+    # ================= WINNERS =================
+@dp.message_handler(commands=['winners'])
+async def winners(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        return
 
+    cursor.execute("""
+        SELECT user_id, referrals
+        FROM users
+        WHERE referrals >= 10
+        ORDER BY referrals DESC
+    """)
+    data = cursor.fetchall()
+
+    text = "🏆 10+ referral qilganlar:\n\n"
+
+    for uid, ref in data:
+        text += f"{uid} — {ref}\n"
+
+    await message.answer(text)
 
 # ================= BROADCAST =================
 @dp.message_handler(commands=['broadcast'])
