@@ -60,16 +60,6 @@ async def start(message: types.Message):
 
     cursor.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
     user = cursor.fetchone()
-    cursor.execute("SELECT user_id FROM users WHERE user_id=?", (user_id,))
-user = cursor.fetchone()
-
-if not user:
-    cursor.execute("""
-        INSERT INTO users (user_id, referrer_id, points, referrals, clicks, last_bonus)
-        VALUES (?, NULL, 0, 0, 0, 0)
-    """, (user_id,))
-    conn.commit()
-
     if not user:
         referrer_id = int(args) if args.isdigit() else None
 
