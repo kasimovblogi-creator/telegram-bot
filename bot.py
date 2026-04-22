@@ -39,6 +39,16 @@ def is_spam(user_id):
 # ================= START =================
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
+# ================= STATS (ADMIN ONLY) =================
+@dp.message_handler(commands=['stats'])
+async def stats(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    cursor.execute("SELECT COUNT(*) FROM users")
+    count = cursor.fetchone()[0]
+
+    await message.answer(f"👥 Foydalanuvchilar soni: {count}")
     user_id = message.from_user.id
 
     if is_spam(user_id):
