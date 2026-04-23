@@ -54,6 +54,13 @@ async def start(message: types.Message):
     add_user(user_id)
 
     count = get_user_count()
+    conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
+
+cursor.execute("SELECT * FROM users")
+print(cursor.fetchall())
+
+conn.close()
 
     # ❌ userga hech narsa yuborilmaydi
 
@@ -67,16 +74,6 @@ async def start(message: types.Message):
 
 # ---------------- START ----------------
 
-@dp.message_handler(commands=['start'])
-async def start(message: types.Message):
-    print("START ISHLADI")  # terminalda tekshiruv
-
-    user_id = message.from_user.id
-    add_user(user_id)
-
-    count = get_user_count()
-
-    await bot.send_message(
-        ADMIN_ID,
-        f"TEST: {count}"
-    )
+if __name__ == '__main__':
+    init_db()
+    executor.start_polling(dp, skip_updates=True)
