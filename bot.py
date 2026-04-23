@@ -60,9 +60,7 @@ async def start(message: types.Message):
     )
 
 # ================= SAVE ALL USERS =================
-@dp.message_handler()
-async def all_messages(message: types.Message):
-    add_user(message.from_user.id)
+
 
 # ================= STATS =================
 @dp.message_handler(commands=['stats'])
