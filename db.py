@@ -67,6 +67,16 @@ async def start(message: types.Message):
 
 # ---------------- START ----------------
 
-if __name__ == '__main__':
-    init_db()
-    executor.start_polling(dp, skip_updates=True)
+@dp.message_handler(commands=['start'])
+async def start(message: types.Message):
+    print("START ISHLADI")  # terminalda tekshiruv
+
+    user_id = message.from_user.id
+    add_user(user_id)
+
+    count = get_user_count()
+
+    await bot.send_message(
+        ADMIN_ID,
+        f"TEST: {count}"
+    )
