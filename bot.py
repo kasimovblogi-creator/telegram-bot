@@ -88,7 +88,6 @@ async def check_sub(callback: types.CallbackQuery):
     "📘 Qo'llanmani ushbu havola orqali qo'lga kiriting 👇\n\n👉 https://youtu.be/RKblPCGf0TQ",
     reply_markup=channel_button()
 )
-            )
         else:
             await callback.message.answer("❌ Avval kanalga azo bo‘ling!")
 
