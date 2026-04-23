@@ -85,8 +85,9 @@ async def check_sub(callback: types.CallbackQuery):
 
         if member.status in ["member", "administrator", "creator"]:
             await callback.message.answer(
-                "📘 Qo'llanmani ushbu havola orqali qo'lga kiriting 👇\n\https://youtu.be/RKblPCGf0TQ,
-                reply_markup=channel_button()
+    "📘 Qo'llanmani ushbu havola orqali qo'lga kiriting 👇\n\n👉 https://youtu.be/RKblPCGf0TQ",
+    reply_markup=channel_button()
+)
             )
         else:
             await callback.message.answer("❌ Avval kanalga azo bo‘ling!")
