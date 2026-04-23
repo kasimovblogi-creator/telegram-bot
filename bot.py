@@ -1,11 +1,11 @@
-﻿import sqlite3
-import time
-import os
+﻿import os
 import logging
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from db import init_db, add_user, get_user_count
 
 CHANNEL = "@saudiya_sari1"
 TOKEN = os.getenv("BOT_TOKEN")
@@ -16,24 +16,8 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
-# ================= DATABASE =================
-conn = sqlite3.connect("users.db")
-cursor = conn.cursor()
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    user_id INTEGER PRIMARY KEY
-)
-""")
-conn.commit()
-
-def add_user(user_id):
-    cursor.execute("INSERT OR IGNORE INTO users (user_id) VALUES (?)", (user_id,))
-    conn.commit()
-
-def get_user_count():
-    cursor.execute("SELECT COUNT(*) FROM users")
-    return cursor.fetchone()[0]
+# ================= DATABASE INIT =================
+init_db()
 
 # ================= KEYBOARD =================
 def sub_keyboard():
@@ -71,11 +55,11 @@ async def start(message: types.Message):
     )
 
     await message.answer(
-        "Assalamu alaykum qo'llanmani qo'lga kiritish uchun kanalga azo bo'ling",
+        "Assalamu alaykum, qo'llanmani olish uchun kanalga azo bo‘ling",
         reply_markup=sub_keyboard()
     )
 
-# ================= HAMMA USERNI SAQLASH =================
+# ================= SAVE ALL USERS =================
 @dp.message_handler()
 async def all_messages(message: types.Message):
     add_user(message.from_user.id)
@@ -101,7 +85,7 @@ async def check_sub(callback: types.CallbackQuery):
 
         if member.status in ["member", "administrator", "creator"]:
             await callback.message.answer(
-                "kechirasiz qo'llanma tayyor emasligi sabab biroz kutib turishingizga to'g'ri keladi kanalimizni kuzating albatta qo'llanmani beramiz",
+                "📘 Qo'llanmani ushbu havola orqali qo'lga kiriting 👇\n\https://youtu.be/RKblPCGf0TQ,
                 reply_markup=channel_button()
             )
         else:
