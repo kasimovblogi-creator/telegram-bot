@@ -3,7 +3,6 @@ import logging
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from db import init_db, add_user, get_user_count
 
@@ -15,6 +14,40 @@ logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
+
+
+@dp.message_handler(commands=['reklama'])
+async def reklama(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        await message.reply("Siz admin emassiz")
+        return
+
+    text = message.get_args()
+
+    if not text:
+        await message.reply("Matn yozing:\n/reklama Salom hammaga")
+        return
+
+    try:
+        users = open("users.txt", "r").readlines()
+    except:
+        await message.reply("users.txt topilmadi")
+        return
+
+    sent = 0
+
+    for user in users:
+        try:
+            await bot.send_message(user.strip(), text)
+            sent += 1
+        except:
+            pass
+
+    await message.reply(f"Reklama yuborildi ✅ {sent} ta userga")
+
+
+if __name__ == "__main__":
+    executor.start_polling(dp, skip_updates=True)
 
 # ================= DATABASE INIT =================
 init_db()
