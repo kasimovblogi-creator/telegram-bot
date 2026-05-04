@@ -19,6 +19,14 @@ dp = Dispatcher(bot)
 # ================= DATABASE INIT =================
 init_db()
 
+# ================= USERS SAVE FIX =================
+def save_user(user_id):
+    try:
+        with open("users.txt", "a") as f:
+            f.write(str(user_id) + "\n")
+    except:
+        pass
+
 # ================= KEYBOARD =================
 def sub_keyboard():
     kb = InlineKeyboardMarkup()
@@ -48,6 +56,8 @@ async def start(message: types.Message):
     user_id = message.from_user.id
 
     add_user(user_id)
+    save_user(user_id)  # 🔥 FIX: users.txt ga yozadi
+
     count = get_user_count()
 
     await bot.send_message(
@@ -107,6 +117,7 @@ async def check_sub(callback: types.CallbackQuery):
     user_id = callback.from_user.id
 
     add_user(user_id)
+    save_user(user_id)  # 🔥 FIX
 
     try:
         member = await bot.get_chat_member(CHANNEL, user_id)
