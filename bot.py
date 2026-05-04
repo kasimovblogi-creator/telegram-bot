@@ -16,6 +16,11 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
 
+@dp.message_handler(commands=['myid'])
+async def myid(message: types.Message):
+    await message.reply(str(message.from_user.id))
+
+
 @dp.message_handler(commands=['reklama'])
 async def reklama(message: types.Message):
     if message.from_user.id != ADMIN_ID:
@@ -48,7 +53,6 @@ async def reklama(message: types.Message):
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
-
 # ================= DATABASE INIT =================
 init_db()
 
